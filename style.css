@@ -1,0 +1,381 @@
+/* ============================
+   TOKENS
+============================ */
+:root {
+  --pink: #FFB6D9;
+  --pink-deep: #FF6FA5;
+  --lavender: #C9B6FF;
+  --mint: #B8F2E6;
+  --cream: #FFF6F9;
+  --paper: #FFFDF7;
+  --ink: #4A3050;
+  --ink-soft: #7A6285;
+  --shadow: #D88CB0;
+  --accent: #FF6FA5;
+
+  --bg: var(--cream);
+  --surface: var(--paper);
+  --text: var(--ink);
+  --text-soft: var(--ink-soft);
+
+  --pixel: 4px;
+  --font-display: 'Press Start 2P', cursive;
+  --font-body: 'Quicksand', sans-serif;
+}
+
+[data-theme="dark"] {
+  --bg: #241B2F;
+  --surface: #2F2238;
+  --text: #FCEFFA;
+  --text-soft: #C9B6D9;
+  --shadow: #140E1A;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: hidden;
+  transition: background 0.4s ease, color 0.4s ease;
+  position: relative;
+}
+
+main {
+  width: 100%;
+  max-width: 640px;
+  padding: 24px 20px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ============================
+   PIXEL BUTTON BASE
+============================ */
+.pixel-btn {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  color: var(--ink);
+  background: var(--mint);
+  border: none;
+  padding: 14px 18px;
+  cursor: pointer;
+  image-rendering: pixelated;
+  box-shadow:
+    0 4px 0 0 var(--shadow),
+    inset -4px -4px 0 0 rgba(0,0,0,0.12),
+    inset 4px 4px 0 0 rgba(255,255,255,0.35);
+  transition: transform 0.08s ease;
+  border-radius: 2px;
+}
+.pixel-btn:hover { filter: brightness(1.05); }
+.pixel-btn:active {
+  transform: translateY(4px);
+  box-shadow:
+    0 0 0 0 var(--shadow),
+    inset -4px -4px 0 0 rgba(0,0,0,0.12),
+    inset 4px 4px 0 0 rgba(255,255,255,0.35);
+}
+.pixel-btn:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+.pixel-btn-accent { background: var(--pink); color: #4A1030; }
+.small-btn { font-size: 0.55rem; padding: 10px 12px; }
+
+.icon-btn {
+  position: fixed;
+  top: 16px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  z-index: 50;
+  background: var(--lavender);
+}
+#theme-toggle { right: 16px; }
+
+/* ============================
+   TYPOGRAPHY
+============================ */
+.title {
+  font-family: var(--font-display);
+  font-size: clamp(1.1rem, 5vw, 1.6rem);
+  text-align: center;
+  line-height: 1.7;
+  color: var(--accent);
+  text-shadow: 2px 2px 0 var(--shadow);
+  margin: 12px 0 4px;
+}
+.heart-pop { display: inline-block; animation: pop 1.4s ease-in-out infinite; }
+@keyframes pop { 0%,100% { transform: scale(1);} 50% { transform: scale(1.25);} }
+
+.subtitle, .hint {
+  font-family: var(--font-body);
+  text-align: center;
+  color: var(--text-soft);
+  font-weight: 600;
+}
+.hint { font-size: 0.85rem; margin-top: 18px; opacity: 0.8; }
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  text-align: center;
+  color: var(--accent);
+  margin-top: 56px;
+}
+
+/* ============================
+   SCREENS
+============================ */
+.screen { display: none; width: 100%; flex-direction: column; align-items: center; }
+.screen.active { display: flex; }
+
+/* ============================
+   ENVELOPE (signature element)
+============================ */
+.envelope {
+  position: relative;
+  width: 220px;
+  height: 150px;
+  margin: 36px auto 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.envelope-body {
+  position: absolute;
+  inset: 0;
+  background: var(--pink);
+  box-shadow:
+    0 6px 0 var(--shadow),
+    inset -6px -6px 0 rgba(0,0,0,0.1),
+    inset 6px 6px 0 rgba(255,255,255,0.3);
+}
+
+.envelope-flap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 80px;
+  background: var(--lavender);
+  clip-path: polygon(0 0, 50% 70%, 100% 0);
+  transform-origin: top center;
+  transition: transform 0.6s cubic-bezier(.5,1.8,.4,1);
+  box-shadow: inset 0 -6px 0 rgba(0,0,0,0.08);
+  z-index: 2;
+}
+
+.envelope-seal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  background: var(--accent);
+  color: var(--paper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  border-radius: 50%;
+  box-shadow: 0 3px 0 var(--shadow);
+  z-index: 3;
+  transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+.envelope.opened .envelope-flap {
+  transform: rotateX(180deg) translateY(-4px);
+}
+.envelope.opened .envelope-seal {
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+}
+.envelope:hover .envelope-flap { filter: brightness(1.08); }
+
+/* ============================
+   LETTER
+============================ */
+.letter-paper {
+  width: 100%;
+  background: var(--surface);
+  border: 4px solid var(--ink);
+  box-shadow: 8px 8px 0 var(--shadow);
+  padding: 28px 22px;
+  margin-top: 24px;
+  min-height: 220px;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  position: relative;
+  color: var(--text);
+}
+
+.cursor {
+  display: inline-block;
+  margin-left: 2px;
+  color: var(--accent);
+  animation: blink 0.9s steps(1) infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+.letter-actions {
+  display: flex;
+  gap: 14px;
+  margin-top: 22px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.surprise-message {
+  margin-top: 16px;
+  text-align: center;
+  font-weight: 700;
+  color: var(--accent);
+  min-height: 1.5em;
+  padding: 0 12px;
+}
+
+/* ============================
+   COUNTDOWN
+============================ */
+.countdown {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.time-box {
+  background: var(--surface);
+  border: 3px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--shadow);
+  padding: 10px 14px;
+  text-align: center;
+  min-width: 64px;
+}
+.time-box span {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--accent);
+}
+.time-box label {
+  font-size: 0.7rem;
+  color: var(--text-soft);
+  text-transform: uppercase;
+}
+
+.date-settings { margin-top: 22px; text-align: center; }
+.date-settings-inner {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+}
+.date-settings-inner label { color: var(--text-soft); font-weight: 600; }
+.date-settings-inner input {
+  font-family: var(--font-body);
+  font-weight: 600;
+  padding: 8px;
+  border: 3px solid var(--ink);
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* ============================
+   FOOTER
+============================ */
+footer {
+  margin-top: 60px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.footer-text { font-size: 0.8rem; color: var(--text-soft); }
+
+/* ============================
+   FLOATING HEARTS / SPARKLES
+============================ */
+#hearts-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+.floating-heart {
+  position: absolute;
+  bottom: -40px;
+  font-size: 1.2rem;
+  opacity: 0.85;
+  animation: floatUp linear forwards;
+  will-change: transform;
+}
+@keyframes floatUp {
+  0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0.9; }
+  100% { transform: translateY(-110vh) translateX(var(--drift, 20px)) rotate(360deg); opacity: 0; }
+}
+
+.sparkle {
+  position: absolute;
+  pointer-events: none;
+  font-size: 1rem;
+  animation: sparkleBurst 0.9s ease-out forwards;
+}
+@keyframes sparkleBurst {
+  0% { transform: translate(0,0) scale(0.4); opacity: 1; }
+  100% { transform: translate(var(--sx), var(--sy)) scale(1.2); opacity: 0; }
+}
+
+#confetti-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 40;
+}
+
+/* ============================
+   RESPONSIVE
+============================ */
+@media (max-width: 420px) {
+  .envelope { width: 180px; height: 124px; }
+  .envelope-flap { height: 66px; }
+  .letter-paper { font-size: 0.95rem; padding: 20px 16px; }
+  .title { font-size: 1rem; }
+}
+
+/* ============================
+   ACCESSIBILITY
+============================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }

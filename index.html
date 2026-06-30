@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Love Letter Surprise ❤️</title>
+<meta name="description" content="An interactive pixel-art love letter, made just for you." />
+
+<link rel="icon" type="image/png" href="assets/favicon.png" />
+<meta property="og:title" content="Love Letter Surprise ❤️" />
+<meta property="og:description" content="An interactive pixel-art love letter, made just for you." />
+<meta property="og:image" content="assets/preview.png" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<canvas id="confetti-canvas" aria-hidden="true"></canvas>
+<div id="hearts-container" aria-hidden="true"></div>
+
+<button id="theme-toggle" class="pixel-btn icon-btn" aria-label="Toggle dark and light mode" title="Toggle theme">
+  <span id="theme-icon">🌙</span>
+</button>
+
+<main>
+
+  <!-- LANDING / ENVELOPE SCREEN -->
+  <section id="landing" class="screen active" aria-label="Landing page">
+    <h1 class="title">Love Letter Surprise <span class="heart-pop">❤️</span></h1>
+    <p class="subtitle">tap the envelope to open it</p>
+
+    <button id="envelope" class="envelope" aria-label="Open the love letter envelope">
+      <span class="envelope-flap"></span>
+      <span class="envelope-body"></span>
+      <span class="envelope-seal">❤</span>
+    </button>
+
+    <p class="hint">psst... it's for you</p>
+  </section>
+
+  <!-- LETTER SCREEN -->
+  <section id="letter-screen" class="screen" aria-label="Love letter">
+    <article class="letter-paper">
+      <p id="letter-text" aria-live="polite"></p>
+      <span id="letter-cursor" class="cursor" aria-hidden="true">▌</span>
+    </article>
+
+    <div class="letter-actions">
+      <button id="read-again" class="pixel-btn">Read Again</button>
+      <button id="surprise-me" class="pixel-btn pixel-btn-accent">Surprise Me ✨</button>
+    </div>
+
+    <p id="surprise-message" class="surprise-message" role="status"></p>
+  </section>
+
+  <!-- ANNIVERSARY TIMER -->
+  <section id="timer-section" aria-label="Anniversary countdown">
+    <h2 class="section-title">Counting Our Days</h2>
+
+    <div id="countdown" class="countdown" aria-live="off">
+      <div class="time-box"><span id="days">00</span><label>days</label></div>
+      <div class="time-box"><span id="hours">00</span><label>hrs</label></div>
+      <div class="time-box"><span id="minutes">00</span><label>min</label></div>
+      <div class="time-box"><span id="seconds">00</span><label>sec</label></div>
+    </div>
+
+    <details class="date-settings">
+      <summary class="pixel-btn small-btn">Edit Date ⚙</summary>
+      <div class="date-settings-inner">
+        <label for="anniversary-date">Anniversary date</label>
+        <input type="date" id="anniversary-date" />
+        <button id="save-date" class="pixel-btn small-btn">Save</button>
+      </div>
+    </details>
+  </section>
+
+</main>
+
+<footer>
+  <button id="music-toggle" class="pixel-btn icon-btn" aria-label="Play background music" title="Play/pause music">
+    <span id="music-icon">🔇</span>
+  </button>
+  <p class="footer-text">made with ❤️ &amp; pixels</p>
+</footer>
+
+<audio id="bg-music" src="assets/music.mp3" loop preload="none"></audio>
+
+<script src="script.js"></script>
+</body>
+</html>
