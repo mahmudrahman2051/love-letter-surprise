@@ -19,12 +19,76 @@
 </head>
 <body>
 
+<div id="share-banner" class="share-banner" aria-hidden="true" style="display: none;">
+  <span>You received a custom love letter! 💌</span>
+  <a href="./" id="create-own-btn" class="pixel-btn small-btn">Create Your Own</a>
+</div>
+
 <canvas id="confetti-canvas" aria-hidden="true"></canvas>
 <div id="hearts-container" aria-hidden="true"></div>
+
+<button id="customizer-toggle" class="pixel-btn icon-btn" aria-label="Customize letter settings" title="Customize letter" style="left: 16px;">
+  <span>✍️</span>
+</button>
 
 <button id="theme-toggle" class="pixel-btn icon-btn" aria-label="Toggle dark and light mode" title="Toggle theme">
   <span id="theme-icon">🌙</span>
 </button>
+
+<!-- CUSTOMIZER MODAL -->
+<div id="customizer-modal" class="modal" role="dialog" aria-labelledby="modal-title" aria-hidden="true">
+  <div class="modal-content letter-paper">
+    <button id="modal-close" class="pixel-btn small-btn close-btn" aria-label="Close customizer">&times;</button>
+    <h2 id="modal-title" class="title">Letter Settings ⚙️</h2>
+    
+    <div class="form-group">
+      <label for="custom-text">Letter Message</label>
+      <textarea id="custom-text" rows="8" placeholder="Type your love letter here..."></textarea>
+    </div>
+    
+    <div class="form-group-row">
+      <div class="form-group">
+        <label for="custom-anniversary">Anniversary Date</label>
+        <input type="date" id="custom-anniversary" />
+      </div>
+      <div class="form-group">
+        <label>Theme Colors</label>
+        <div class="theme-presets-grid">
+          <button class="theme-preset-btn active" data-preset="classic" style="--btn-bg: #FFB6D9; --btn-border: #FF6FA5;" title="Classic Pink">🌸</button>
+          <button class="theme-preset-btn" data-preset="lavender" style="--btn-bg: #C9B6FF; --btn-border: #7A6285;" title="Sweet Lavender">🍇</button>
+          <button class="theme-preset-btn" data-preset="mint" style="--btn-bg: #B8F2E6; --btn-border: #4A3050;" title="Minty Fresh">🌿</button>
+          <button class="theme-preset-btn" data-preset="sunset" style="--btn-bg: #FFD27D; --btn-border: #FF6FA5;" title="Sunset Gold">☀️</button>
+          <button class="theme-preset-btn" data-preset="midnight" style="--btn-bg: #2F2238; --btn-border: #FFB6D9;" title="Midnight Dark">🌌</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="custom-music-url">Background Music URL (MP3)</label>
+      <input type="url" id="custom-music-url" placeholder="https://example.com/music.mp3" />
+      <p class="form-hint">Paste an MP3 link to play custom music.</p>
+    </div>
+    
+    <div class="form-group">
+      <label>Surprise Messages (Quick Popups)</label>
+      <div class="surprise-manager">
+        <ul id="surprise-list" class="surprise-list">
+          <!-- Dynamically populated -->
+        </ul>
+        <div class="surprise-add-row">
+          <input type="text" id="new-surprise-input" placeholder="Add custom message..." maxlength="80" />
+          <button id="add-surprise-btn" class="pixel-btn small-btn">Add</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-actions">
+      <button id="save-customizer" class="pixel-btn pixel-btn-accent">Save 💖</button>
+      <button id="share-link-btn" class="pixel-btn">Get Link 🔗</button>
+      <button id="reset-customizer" class="pixel-btn small-btn">Reset</button>
+    </div>
+  </div>
+</div>
 
 <main>
 
@@ -35,6 +99,7 @@
 
     <button id="envelope" class="envelope" aria-label="Open the love letter envelope">
       <span class="envelope-flap"></span>
+      <span class="envelope-paper"><span class="envelope-paper-preview">❤</span></span>
       <span class="envelope-body"></span>
       <span class="envelope-seal">❤</span>
     </button>
@@ -83,6 +148,11 @@
 <footer>
   <button id="music-toggle" class="pixel-btn icon-btn" aria-label="Play background music" title="Play/pause music">
     <span id="music-icon">🔇</span>
+    <div id="music-visualizer" class="music-visualizer" aria-hidden="true">
+      <span class="vis-bar"></span>
+      <span class="vis-bar"></span>
+      <span class="vis-bar"></span>
+    </div>
   </button>
   <p class="footer-text">made with ❤️ &amp; pixels</p>
 </footer>

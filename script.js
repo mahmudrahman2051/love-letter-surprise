@@ -4,8 +4,8 @@
    below to customize. See README.md for full guide.
 ============================================================ */
 
-/* ---------- CUSTOMIZE ME ---------- */
-const LETTER_TEXT = `My Dearest,
+/* ---------- DEFAULTS ---------- */
+const DEFAULT_LETTER_TEXT = `My Dearest,
 
 From the moment we met, my world gained a softer light.
 Every ordinary day became something worth remembering,
@@ -19,9 +19,9 @@ Here's to every day we still get to write together.
 
 Always yours.`;
 
-const ANNIVERSARY_DATE_DEFAULT = "2024-02-14"; // YYYY-MM-DD, editable in-app too
+const DEFAULT_ANNIVERSARY_DATE = "2024-02-14";
 
-const SURPRISE_MESSAGES = [
+const DEFAULT_SURPRISE_MESSAGES = [
   "You are my favorite notification. 💌",
   "If kisses were snowflakes, I'd send you a blizzard. ❄️",
   "My heart does a little pixel-jump every time you smile.",
@@ -43,15 +43,26 @@ const SURPRISE_MESSAGES = [
   "You're the reason I believe in soft endings.",
   "P.S. I still get butterflies. Every single time."
 ];
-/* ---------- END CUSTOMIZE ---------- */
+
+// App State
+let state = {
+  letterText: DEFAULT_LETTER_TEXT,
+  anniversaryDate: DEFAULT_ANNIVERSARY_DATE,
+  surpriseMessages: [...DEFAULT_SURPRISE_MESSAGES],
+  musicUrl: "",
+  themePreset: "classic"
+};
 
 document.addEventListener('DOMContentLoaded', () => {
+  loadState();
   initTheme();
   initHearts();
   initEnvelope();
   initLetterActions();
   initMusic();
   initCountdown();
+  initCustomizer();
+  initMouseTrail();
 });
 
 /* ============================
@@ -156,8 +167,9 @@ function initEnvelope() {
     setTimeout(() => {
       landing.classList.remove('active');
       letterScreen.classList.add('active');
+      letterScreen.style.animation = 'pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.1)';
       typeLetter();
-    }, 650);
+    }, 950);
   });
 }
 
@@ -173,7 +185,7 @@ function typeLetter() {
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reduceMotion) {
-    textEl.textContent = LETTER_TEXT;
+    textEl.textContent = state.letterText;
     return;
   }
 
@@ -181,8 +193,8 @@ function typeLetter() {
   const speed = 28; // ms per character
 
   function step() {
-    if (i <= LETTER_TEXT.length) {
-      textEl.textContent = LETTER_TEXT.slice(0, i);
+    if (i <= state.letterText.length) {
+      textEl.textContent = state.letterText.slice(0, i);
       i++;
       typingTimeoutId = setTimeout(step, speed);
     }
@@ -205,13 +217,17 @@ function initLetterActions() {
 
   let lastIndex = -1;
   surpriseBtn.addEventListener('click', () => {
+    if (!state.surpriseMessages || state.surpriseMessages.length === 0) {
+      surpriseMsgEl.textContent = "You're amazing! ❤️";
+      return;
+    }
     let idx;
     do {
-      idx = Math.floor(Math.random() * SURPRISE_MESSAGES.length);
-    } while (idx === lastIndex && SURPRISE_MESSAGES.length > 1);
+      idx = Math.floor(Math.random() * state.surpriseMessages.length);
+    } while (idx === lastIndex && state.surpriseMessages.length > 1);
     lastIndex = idx;
 
-    surpriseMsgEl.textContent = SURPRISE_MESSAGES[idx];
+    surpriseMsgEl.textContent = state.surpriseMessages[idx];
     surpriseMsgEl.style.animation = 'none';
     // eslint-disable-next-line no-unused-expressions
     surpriseMsgEl.offsetHeight;
@@ -229,7 +245,12 @@ function initMusic() {
   const audio = document.getElementById('bg-music');
   const btn = document.getElementById('music-toggle');
   const icon = document.getElementById('music-icon');
+  const visualizer = document.getElementById('music-visualizer');
   let playing = false;
+
+  if (state.musicUrl) {
+    audio.src = state.musicUrl;
+  }
 
   btn.addEventListener('click', async () => {
     try {
@@ -238,14 +259,15 @@ function initMusic() {
         playing = true;
         icon.textContent = '🔊';
         btn.setAttribute('aria-label', 'Pause background music');
+        if (visualizer) visualizer.classList.add('playing');
       } else {
         audio.pause();
         playing = false;
         icon.textContent = '🔇';
         btn.setAttribute('aria-label', 'Play background music');
+        if (visualizer) visualizer.classList.remove('playing');
       }
     } catch (err) {
-      // Autoplay restrictions or missing file — fail silently, icon stays muted
       console.warn('Music could not be played:', err);
     }
   });
@@ -258,17 +280,18 @@ function initCountdown() {
   const dateInput = document.getElementById('anniversary-date');
   const saveBtn = document.getElementById('save-date');
 
-  const stored = localStorage.getItem('lls-anniversary-date');
-  const activeDate = stored || ANNIVERSARY_DATE_DEFAULT;
-  dateInput.value = activeDate;
+  dateInput.value = state.anniversaryDate;
 
-  updateCountdown(activeDate);
-  const intervalId = setInterval(() => updateCountdown(dateInput.value || activeDate), 1000);
+  updateCountdown(state.anniversaryDate);
+  const intervalId = setInterval(() => {
+    updateCountdown(dateInput.value || state.anniversaryDate);
+  }, 1000);
 
   saveBtn.addEventListener('click', () => {
     const val = dateInput.value;
     if (!val) return;
-    localStorage.setItem('lls-anniversary-date', val);
+    state.anniversaryDate = val;
+    saveStateToStorage(state);
     updateCountdown(val);
   });
 
@@ -279,7 +302,6 @@ function updateCountdown(dateStr) {
   const target = new Date(dateStr + 'T00:00:00');
   const now = new Date();
 
-  // Always count to the *next* occurrence of this date (anniversary, recurring yearly)
   let next = new Date(target);
   next.setFullYear(now.getFullYear());
   if (next < now) next.setFullYear(now.getFullYear() + 1);
@@ -291,15 +313,30 @@ function updateCountdown(dateStr) {
   const minutes = Math.floor((diff / (1000 * 60)) % 60);
   const seconds = Math.floor((diff / 1000) % 60);
 
-  setText('days', pad(days));
-  setText('hours', pad(hours));
-  setText('minutes', pad(minutes));
-  setText('seconds', pad(seconds));
+  setTextWithTick('days', pad(days));
+  setTextWithTick('hours', pad(hours));
+  setTextWithTick('minutes', pad(minutes));
+  setTextWithTick('seconds', pad(seconds));
 }
 
 function setText(id, value) {
   const el = document.getElementById(id);
   if (el) el.textContent = value;
+}
+
+function setTextWithTick(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (el.textContent !== value) {
+    el.textContent = value;
+    const box = el.closest('.time-box');
+    if (box) {
+      box.classList.remove('tick');
+      // eslint-disable-next-line no-unused-expressions
+      box.offsetHeight;
+      box.classList.add('tick');
+    }
+  }
 }
 function pad(n) { return String(n).padStart(2, '0'); }
 
@@ -369,3 +406,304 @@ window.addEventListener('resize', () => {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 });
+
+/* ============================================================
+   STATE LOAD / SAVE & CUSTOMIZER / PARTICLES
+============================================================ */
+
+function loadState() {
+  const params = new URLSearchParams(window.location.search);
+  const sharedData = params.get('l');
+  if (sharedData) {
+    try {
+      const decoded = decodeURIComponent(escape(atob(sharedData)));
+      const data = JSON.parse(decoded);
+      
+      if (data.t) state.letterText = data.t;
+      if (data.d) state.anniversaryDate = data.d;
+      if (data.m && Array.isArray(data.m)) state.surpriseMessages = data.m;
+      if (data.mu) state.musicUrl = data.mu;
+      if (data.theme) state.themePreset = data.theme;
+      
+      const banner = document.getElementById('share-banner');
+      if (banner) banner.style.display = 'flex';
+      
+      applyPresetTheme(state.themePreset);
+      saveStateToStorage(state);
+      return;
+    } catch (e) {
+      console.error("Failed to parse shared letter data:", e);
+    }
+  }
+
+  const stored = localStorage.getItem('lls-custom-state');
+  if (stored) {
+    try {
+      const data = JSON.parse(stored);
+      if (data.letterText) state.letterText = data.letterText;
+      if (data.anniversaryDate) state.anniversaryDate = data.anniversaryDate;
+      if (data.surpriseMessages) state.surpriseMessages = data.surpriseMessages;
+      if (data.musicUrl) state.musicUrl = data.musicUrl;
+      if (data.themePreset) state.themePreset = data.themePreset;
+      
+      applyPresetTheme(state.themePreset);
+    } catch (e) {
+      console.error("Failed to load local state:", e);
+    }
+  }
+}
+
+function saveStateToStorage(customState) {
+  localStorage.setItem('lls-custom-state', JSON.stringify(customState));
+  localStorage.setItem('lls-anniversary-date', customState.anniversaryDate);
+}
+
+function applyPresetTheme(preset) {
+  document.body.className = document.body.className.replace(/\bpreset-\S+/g, '');
+  if (preset && preset !== 'classic') {
+    document.body.classList.add(`preset-${preset}`);
+  }
+}
+
+function initCustomizer() {
+  const toggleBtn = document.getElementById('customizer-toggle');
+  const modal = document.getElementById('customizer-modal');
+  const closeBtn = document.getElementById('modal-close');
+  const saveBtn = document.getElementById('save-customizer');
+  const shareBtn = document.getElementById('share-link-btn');
+  const resetBtn = document.getElementById('reset-customizer');
+
+  const textInput = document.getElementById('custom-text');
+  const dateInput = document.getElementById('custom-anniversary');
+  const musicInput = document.getElementById('custom-music-url');
+  
+  const surpriseList = document.getElementById('surprise-list');
+  const addSurpriseInput = document.getElementById('new-surprise-input');
+  const addSurpriseBtn = document.getElementById('add-surprise-btn');
+
+  let tempMessages = [...state.surpriseMessages];
+  let selectedPreset = state.themePreset;
+
+  function renderSurpriseList() {
+    surpriseList.innerHTML = '';
+    tempMessages.forEach((msg, idx) => {
+      const li = document.createElement('li');
+      li.textContent = msg.length > 35 ? msg.substring(0, 32) + '...' : msg;
+      
+      const delBtn = document.createElement('button');
+      delBtn.innerHTML = '&times;';
+      delBtn.title = "Delete message";
+      delBtn.addEventListener('click', () => {
+        tempMessages.splice(idx, 1);
+        renderSurpriseList();
+      });
+      
+      li.appendChild(delBtn);
+      surpriseList.appendChild(li);
+    });
+  }
+
+  const presetBtns = document.querySelectorAll('.theme-preset-btn');
+  presetBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      presetBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedPreset = btn.getAttribute('data-preset');
+    });
+  });
+
+  toggleBtn.addEventListener('click', () => {
+    textInput.value = state.letterText;
+    dateInput.value = state.anniversaryDate;
+    musicInput.value = state.musicUrl;
+    tempMessages = [...state.surpriseMessages];
+    selectedPreset = state.themePreset;
+
+    presetBtns.forEach(btn => {
+      if (btn.getAttribute('data-preset') === selectedPreset) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    renderSurpriseList();
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+  });
+
+  function closeModal() {
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+  closeBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  addSurpriseBtn.addEventListener('click', () => {
+    const text = addSurpriseInput.value.trim();
+    if (!text) return;
+    tempMessages.push(text);
+    addSurpriseInput.value = '';
+    renderSurpriseList();
+  });
+
+  addSurpriseInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      addSurpriseBtn.click();
+    }
+  });
+
+  saveBtn.addEventListener('click', () => {
+    state.letterText = textInput.value;
+    state.anniversaryDate = dateInput.value;
+    state.musicUrl = musicInput.value;
+    state.surpriseMessages = [...tempMessages];
+    state.themePreset = selectedPreset;
+
+    saveStateToStorage(state);
+    applyPresetTheme(state.themePreset);
+
+    const audio = document.getElementById('bg-music');
+    if (audio) {
+      const currentSrc = audio.src;
+      const targetSrc = state.musicUrl || 'assets/music.mp3';
+      if (!currentSrc.endsWith(targetSrc) && !targetSrc.endsWith(currentSrc)) {
+        audio.src = targetSrc;
+        audio.load();
+      }
+    }
+
+    const inPageDateInput = document.getElementById('anniversary-date');
+    if (inPageDateInput) {
+      inPageDateInput.value = state.anniversaryDate;
+    }
+    updateCountdown(state.anniversaryDate);
+
+    const letterScreen = document.getElementById('letter-screen');
+    if (letterScreen.classList.contains('active')) {
+      typeLetter();
+    }
+
+    closeModal();
+    alert("Settings saved successfully! 💖");
+  });
+
+  resetBtn.addEventListener('click', () => {
+    if (confirm("Reset letter back to default templates?")) {
+      state.letterText = DEFAULT_LETTER_TEXT;
+      state.anniversaryDate = DEFAULT_ANNIVERSARY_DATE;
+      state.surpriseMessages = [...DEFAULT_SURPRISE_MESSAGES];
+      state.musicUrl = "";
+      state.themePreset = "classic";
+
+      saveStateToStorage(state);
+      applyPresetTheme(state.themePreset);
+
+      textInput.value = state.letterText;
+      dateInput.value = state.anniversaryDate;
+      musicInput.value = state.musicUrl;
+      tempMessages = [...state.surpriseMessages];
+      selectedPreset = state.themePreset;
+
+      presetBtns.forEach(btn => {
+        if (btn.getAttribute('data-preset') === 'classic') btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+
+      renderSurpriseList();
+
+      const audio = document.getElementById('bg-music');
+      if (audio) {
+        audio.src = 'assets/music.mp3';
+        audio.load();
+      }
+
+      const inPageDateInput = document.getElementById('anniversary-date');
+      if (inPageDateInput) inPageDateInput.value = state.anniversaryDate;
+      updateCountdown(state.anniversaryDate);
+
+      const banner = document.getElementById('share-banner');
+      if (banner) banner.style.display = 'none';
+
+      closeModal();
+      alert("Settings reset to default! 💖");
+    }
+  });
+
+  shareBtn.addEventListener('click', () => {
+    const shareData = {
+      t: textInput.value,
+      d: dateInput.value,
+      m: tempMessages,
+      mu: musicInput.value,
+      theme: selectedPreset
+    };
+
+    try {
+      const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(shareData))));
+      const shareUrl = `${window.location.origin}${window.location.pathname}?l=${encoded}`;
+      
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        alert("Shareable letter link copied to clipboard! Send it to your love! 🔗💖");
+      }).catch(err => {
+        console.error("Failed to copy link:", err);
+        const fallback = prompt("Copy this link to share your letter:", shareUrl);
+      });
+    } catch (e) {
+      console.error("Encoding failed:", e);
+      alert("Oops, something went wrong generating the link.");
+    }
+  });
+}
+
+function initMouseTrail() {
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduceMotion) return;
+
+  let lastX = 0;
+  let lastY = 0;
+  const emojis = ['❤️', '✨', '💖', '⭐', '💕'];
+  
+  function createParticle(x, y) {
+    const p = document.createElement('span');
+    p.className = 'cursor-particle';
+    p.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    p.style.left = x + 'px';
+    p.style.top = y + 'px';
+    
+    const mx = (Math.random() - 0.5) * 60 + 'px';
+    const my = (Math.random() - 0.5) * 60 - 45 + 'px';
+    const rot = (Math.random() - 0.5) * 180 + 'deg';
+    
+    p.style.setProperty('--mx', mx);
+    p.style.setProperty('--my', my);
+    p.style.setProperty('--rot', rot);
+    
+    document.body.appendChild(p);
+    
+    setTimeout(() => {
+      p.remove();
+    }, 800);
+  }
+
+  window.addEventListener('mousemove', (e) => {
+    const dist = Math.hypot(e.clientX - lastX, e.clientY - lastY);
+    if (dist > 35) {
+      createParticle(e.clientX, e.clientY);
+      lastX = e.clientX;
+      lastY = e.clientY;
+    }
+  });
+
+  window.addEventListener('touchmove', (e) => {
+    const touch = e.touches[0];
+    const dist = Math.hypot(touch.clientX - lastX, touch.clientY - lastY);
+    if (dist > 35) {
+      createParticle(touch.clientX, touch.clientY);
+      lastX = touch.clientX;
+      lastY = touch.clientY;
+    }
+  }, { passive: true });
+}
